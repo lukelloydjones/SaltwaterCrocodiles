@@ -1,0 +1,139 @@
+// Keywords: nonWF, non-Wright-Fisher
+// Adding in minimum age of reproduction (AAR)
+
+initialize() {
+	initializeSLiMModelType("nonWF");
+	defineConstant("K", 1000);
+	defineConstant("rMigration", 0.00001);
+	defineConstant("genout", 5900);
+	defineConstant("outputloc", "~/Desktop/slim_mg_2p_migr_0pt001pc/");
+	defineConstant("resultloc", "nonWF_st1_gen_");
+	
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	m1.convertToSubstitution = T;
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, 655999999);
+	initializeMutationRate(3.5e-9); // When the sample size is 1000
+	//initializeMutationRate(1e-8);
+	initializeRecombinationRate(1e-8);
+	
+	initializeSex("A");
+	
+	// delete any existing pedigree log files
+	//deleteFile("~/Desktop/slim_mg_mp/mating_multi_gen_p1.txt");
+	//deleteFile("~/Desktop/slim_mg_mp/mating_multi_gen_p2.txt");
+	sapply(filesAtPath(outputloc, fullPaths=T), "deleteFile(applyValue);");
+	
+}
+reproduction(p1, "F") {
+	// choose a mate and generate an offspring at a minimum age
+	if (individual.age > 5) {
+	  mate  = subpop.sampleIndividuals(1, sex = "M", minAge = 6);
+	  child = subpop.addCrossed(individual, mate);
+	  child.tag = sim.tag;
+	  sim.tag = sim.tag + 1;
+	  
+	  // log the mating after a certain generation
+	  if (sim.generation  > genout)
+	  {
+	    line = paste(sim.generation, individual.tag, mate.tag, child.tag, child.sex);
+	    writeFile(paste(outputloc,"mating_multi_gen_p1.txt", sep=""), line, append = T);
+	  }
+	}
+}
+reproduction(p2, "F") {
+	// choose a mate and generate an offspring at a minimum age
+	if (individual.age > 5) {
+	  mate  = subpop.sampleIndividuals(1, sex = "M", minAge = 6);
+	  child = subpop.addCrossed(individual, mate);
+	  child.tag = sim.tag;
+	  sim.tag = sim.tag + 1;
+	  
+	  // log the mating after a certain generation
+	  if (sim.generation  > genout)
+	  {
+	    line = paste(sim.generation, individual.tag, mate.tag, child.tag, child.sex);
+	    writeFile(paste(outputloc,"mating_multi_gen_p2.txt", sep=""), line, append = T);
+	  }
+	}
+}
+1 early() {
+	sim.addSubpop("p1", 100);
+	// provide initial tags and remember the next tag value
+	p1.individuals.tag = 1:100;
+	sim.tag = 101;
+	
+	sim.addSubpop("p2", 100);
+	// provide initial tags and remember the next tag value
+	p2.individuals.tag = 1:100;
+	sim.tag = 101;
+	
+	// Migration rates
+	//p1.setMigrationRates(p2, 0.000001);
+	//p2.setMigrationRates(p1, 0.000001);
+}
+early() {
+	 //migration, from manual section 16.5
+	 nIndividuals = sum(sim.subpopulations.individualCount);
+    nMigrants = rpois(1, nIndividuals * rMigration);
+    migrants = sample(sim.subpopulations.individuals, nMigrants);
+    for (migrant in migrants) {
+       do dest = sample(sim.subpopulations, 1);
+       while (dest == migrant.subpopulation);
+       dest.takeMigrants(migrant);
+    }
+
+
+	// density-dependence
+	p1.fitnessScaling = K / p1.individualCount;
+	p2.fitnessScaling = K / p2.individualCount;
+	
+	// remember the extant individual tags
+	//sim.setValue("extant", sim.subpopulations.individuals.tag);
+}
+//late() {
+	// log out the individuals that died
+//	oldExtant = sim.getValue("extant");
+//	newExtant = sim.subpopulations.individuals.tag;
+//	survived  = (match(oldExtant, newExtant) >= 0);
+//	died      = oldExtant[!survived];
+	
+//	for (indTag in died)
+//	{
+//		line = sim.generation + " " + indTag;
+//		writeFile("~/Desktop/death.txt", line, append=T);
+//	}
+//}
+
+1: late() {
+         catn("Size p1 " + p1.individualCount);
+         catn("Size p2 " + p2.individualCount);
+}
+
+function (void)printOutput(void) {
+  writeFile(paste(outputloc, resultloc, sim.generation,"_inds.txt", sep = ""), 
+            paste(sim.subpopulations.individuals.tag));
+  writeFile(paste(outputloc, resultloc, sim.generation,"_sex.txt",  sep = ""),      
+            paste(sim.subpopulations.individuals.sex));
+  writeFile(paste(outputloc, resultloc, sim.generation,"_age.txt",  sep = ""), 
+            paste(sim.subpopulations.individuals.age));
+  writeFile(paste(outputloc, resultloc, sim.generation,"_sbpop.txt",  sep = ""), 
+            paste(sim.subpopulations.individuals.subpopulation));
+  sim.outputFull(paste(outputloc, resultloc,sim.generation,".sf",  sep = ""),  ages = T);
+  allIndividuals = sim.subpopulations.individuals;
+  allIndividuals.genomes.outputVCF(paste(outputloc, resultloc,sim.generation,".vcf", sep = ""));
+  //sim.simulationFinished(); 
+  return;
+}
+
+5994 late() { 
+	printOutput();
+}
+
+5997 late() { 
+  printOutput();
+}
+
+6000 late() { 
+  printOutput();
+}
