@@ -54,7 +54,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
-
+<!---
 ### Built With
 
 %* [Next.js](https://nextjs.org/)
@@ -67,7 +67,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 %* [JQuery](https://jquery.com)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
+-->
 
 
 <!-- GETTING STARTED -->
