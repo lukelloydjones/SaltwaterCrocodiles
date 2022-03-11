@@ -39,7 +39,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
+Saltwater crocodiles (Crocodyus porosus) are the most widely distributed living crocodilians, extending from southern Asia to northern Australia. The species has a wide distribution across northern Australia, with a substantial Queensland population, which has been growing over the last 30 years after being hunted to low numbers in the middle of the last century. Saltwater crocodiles are large apex predators and their coastal movements and co-localisation with large urban areas leads to interactions with humans. This creates substantial management problems throughout their range and frequently requires interventions to reduce the public risk. The Queensland population is hypothesised to be limited to distinct bioregions and given the high mobility of adult crocodiles potentially connected.
 
+In this project, we perform genetic analyses using data from ≈1,100 adult and juvenile saltwater crocodiles from across the Queensland population to investigate the spatial distribution of kin pairs across six bioregions and contrast this with historical long-term connectivity patterns, estimated from genome-wide SNP data. To generate these SNP data, we use a cost-efficient genotyping method that combines DArTseq on a pilot set of individuals followed by DArT sequence capture. We illustrate the use of the generated genetic data for kin-pair detection and population genetics analysis. These results provide new insights into saltwater crocodile connectivity across Queensland, which has substantial significance for the management of public safety and this protected species.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
