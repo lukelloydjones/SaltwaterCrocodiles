@@ -64,9 +64,9 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 %* [JQuery](https://jquery.com)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+-->
 
-
-
+<!---
 <!-- GETTING STARTED -->
 ## Getting Started
 
@@ -80,7 +80,9 @@ This is an example of how to list things you need to use the software and how to
   ```sh
   npm install npm@latest -g
   ```
+-->
 
+<!---
 ### Installation
 
 1. Get a free API Key at [https://example.com](https://example.com)
@@ -98,7 +100,7 @@ This is an example of how to list things you need to use the software and how to
    ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
+-->
 
 
 <!-- USAGE EXAMPLES -->
@@ -141,7 +143,7 @@ Don't forget to give the project a star! Thanks again!
 5. Open a Pull Request
 
 <p align="right">(<a href="#top">back to top</a>)</p>
--->
+
 
 
 <!-- LICENSE -->
