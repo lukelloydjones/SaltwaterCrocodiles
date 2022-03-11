@@ -3,9 +3,6 @@
   <p align="center">
     project_description
     <br />
-    <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
     <a href="https://github.com/github_username/repo_name">View Demo</a>
     ·
     <a href="https://github.com/github_username/repo_name/issues">Report Bug</a>
@@ -67,7 +64,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 %* [JQuery](https://jquery.com)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
--->
+
 
 
 <!-- GETTING STARTED -->
@@ -144,7 +141,7 @@ Don't forget to give the project a star! Thanks again!
 5. Open a Pull Request
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
+-->
 
 
 <!-- LICENSE -->
