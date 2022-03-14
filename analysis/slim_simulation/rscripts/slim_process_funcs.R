@@ -51,7 +51,7 @@ SLiM_validate <- function(PLOD,
   # The above 'i'd to long 'id' conversion is necessary because we 
   # only have the pedigree
   # in terms of long ids.
-  ped.1 <- fread(paste0(homefolder, "mating_multi_gen_p1.txt"))
+  ped.1 <- fread(paste0(homefolder,  "mating_multi_gen_p1.txt"))
   if (file.exists(paste0(homefolder, "mating_multi_gen_p2.txt"))) {
     ped.1 <- rbind(ped.1, fread(paste0(homefolder, "mating_multi_gen_p2.txt")))
   }
@@ -110,7 +110,7 @@ findkinships <- function(pedigree, sampled = NULL) {
   # Check pedigree seems valid
   assertthat::assert_that(length(pedigree[["mumid"]]) > 0 && 
                           length(pedigree[["dadid"]]) > 0 && 
-                            length(pedigree[["id"]]) > 0,
+                          length(pedigree[["id"]])    > 0,
                           msg="`pedigree` must have columns `mumid`, `dadid`, and `id`.")
   
   # Create or check sampled seems valid
@@ -126,7 +126,7 @@ findkinships <- function(pedigree, sampled = NULL) {
   }
   
   # Precalculate some booleans
-  pedigree$me.insample <- pedigree$id %in% sampled
+  pedigree$me.insample  <- pedigree$id %in% sampled
   pedigree$mum.insample <- pedigree$mumid %in% sampled
   pedigree$dad.insample <- pedigree$dadid %in% sampled
   
@@ -151,7 +151,8 @@ findkinships <- function(pedigree, sampled = NULL) {
   # Find all Full Sibling Pairs
   FSP <- data.table::data.table(NULL)
   # all parental pairs that occur multiple times in pedigree table
-  pgroups <- unique(pedigree[duplicated(pedigree, by=c("mumid","dadid")),c("mumid","dadid")])
+  pgroups <- unique(pedigree[duplicated(pedigree, by=c("mumid","dadid")),
+                                                     c("mumid","dadid")])
   
   for (ind in 1:dim(pgroups)[1]) {
     sibs <- pedigree[mumid == pgroups$mumid[ind] & dadid == pgroups$dadid[ind],]
@@ -164,12 +165,13 @@ findkinships <- function(pedigree, sampled = NULL) {
   ks[FSP, on=.(ID1 == V1, ID2 == V2), kinship := "FSP"]
   ks[FSP, on=.(ID2 == V1, ID1 == V2), kinship := "FSP"]
   assertthat::assert_that(sum(ks$kinship == "POP", na.rm=TRUE) == nPOP, 
-                          msg="Pedigree file seems wrong: found a pair that's apparently both parent/offspring and full siblings")
+                          msg="Pedigree file seems wrong: found a pair that's 
+                          apparently both parent/offspring and full siblings")
   nFSP <- sum(ks$kinship == "FSP", na.rm=TRUE)
   
   #Find half-sibling pairs. They have a parent and child in the sample but not both.
   HSP <- data.table(NULL)
-  for (parent in pedigree[,sum(me.insample),by=.(mumid)][V1 > 1,mumid]) {
+  for (parent in pedigree[, sum(me.insample), by=.(mumid)][V1 > 1,mumid]) {
     sibs <- pedigree[mumid == parent & me.insample,]
     cmb <- combn(sibs$id,2)
     HSP <- rbind(HSP, t(cmb))
@@ -183,6 +185,51 @@ findkinships <- function(pedigree, sampled = NULL) {
   ks[HSP, on=.(ID1 == V1, ID2 == V2), kinship := "HSP"]
   ks[HSP, on=.(ID2 == V1, ID1 == V2), kinship := "HSP"]
   nHSP <- sum(ks$kinship == "HSP", na.rm=TRUE)
+  
+  # --------------
+  # Profiling GGPs
+  # --------------
+  dim(ks) # Cohort gap has to be 
+  k.sub <- k[(k$kin > 0.1  & k$kin < 0.13) &
+             (k$k0  > 0.45 &  k$k0 < 0.55), ]
+  
+  k2 <- rbind(merge(k, ks, by.x=c("longID1","longID2"), by.y=c("ID1","ID2")),
+             merge(k, ks,  by.x=c("longID1","longID2"), by.y=c("ID2","ID1")))
+  table(k2$kinship)
+  
+  k.sub <- k2[(k2$kin > 0.09  & k2$kin < 0.15) &
+              (k2$k0  > 0.35 &  k2$k0 < 0.65)
+               & (k2$kinship != "HSP") , ]
+  
+  max(k.sub$age1 - k.sub$age2)
+  
+  # id4538637 id4550946 i2230 i2682
+  for (i in seq(1, dim(k.sub)[1]))
+  {
+    p1 <- pedigree[id == k.sub$longID1[i], ]
+    p2 <- pedigree[id == k.sub$longID2[i], ]
+  
+    p1.mum <- pedigree[id == p1$mumid, ]
+    p1.dad <- pedigree[id == p1$dadid, ]
+  
+    p1.ps <- c(p1$mumid, p1$dadid)
+    p1.gs <- c(p1.mum$mumid, p1.mum$dadid, 
+               p1.dad$mumid, p1.dad$dadid)
+  
+    p2.mum <- pedigree[id == p2$mumid, ]
+    p2.dad <- pedigree[id == p2$dadid, ]
+  
+    p2.ps <- c(p2$mumid, p2$dadid)
+    p2.gs <- c(p2.mum$mumid, p2.mum$dadid, 
+               p2.dad$mumid, p2.dad$dadid)
+    # Test
+    if (sum(p1.gs %in% p2.ps) == 2 |
+        sum(p2.gs %in% p1.ps) == 2)
+    {
+      print('Aunt/Neice relationship')
+    }
+  }
+  
   
   return(ks)
 }
