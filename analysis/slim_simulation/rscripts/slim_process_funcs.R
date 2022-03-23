@@ -64,6 +64,7 @@ SLiM_validate <- function(PLOD,
   # works out POPs, FSPs and HSPs.
   # All others are labelled as unrelated.
   k2 <- findkinships(pedigree = ped.1, 
+                     k = k,
                      sampled = unique(c(k$longID1,k$longID2)))
   #ids$longid[match(kinferdata_g$info[,"Our_sample"],ids$indexid)]
   
@@ -102,7 +103,7 @@ SLiM_validate <- function(PLOD,
   return(k)
 }
 
-findkinships <- function(pedigree, sampled = NULL) {
+findkinships <- function(pedigree, k, sampled = NULL) {
   require(data.table)
   # pass me a pedigree file eg from SLiM -> for now, see the bottom of this script 
   # for an example. Will set out documentation soon. 
@@ -189,25 +190,26 @@ findkinships <- function(pedigree, sampled = NULL) {
   # --------------
   # Profiling GGPs
   # --------------
-  dim(ks) # Cohort gap has to be 
-  k.sub <- k[(k$kin > 0.1  & k$kin < 0.13) &
-             (k$k0  > 0.45 &  k$k0 < 0.55), ]
   
-  k2 <- rbind(merge(k, ks, by.x=c("longID1","longID2"), by.y=c("ID1","ID2")),
-             merge(k, ks,  by.x=c("longID1","longID2"), by.y=c("ID2","ID1")))
+  
+  kks <- rbind(merge(k, ks, by.x = c("longID1", "longID2"), 
+                            by.y = c("ID1", "ID2")),
+               merge(k, ks, by.x = c("longID1","longID2"), 
+                            by.y = c("ID2","ID1")))
   table(k2$kinship)
   
   k.sub <- k2[(k2$kin > 0.09  & k2$kin < 0.15) &
-              (k2$k0  > 0.35 &  k2$k0 < 0.65)
+              (k2$k0  > 0.35  & k2$k0 < 0.65)
                & (k2$kinship != "HSP") , ]
   
-  max(k.sub$age1 - k.sub$age2)
+  max(abs(kks$age1 - kks$age2))
   
   # id4538637 id4550946 i2230 i2682
-  for (i in seq(1, dim(k.sub)[1]))
+  for (i in seq(1, dim(ks)[1]))
   {
-    p1 <- pedigree[id == k.sub$longID1[i], ]
-    p2 <- pedigree[id == k.sub$longID2[i], ]
+    if (i %% 200 == 0) {print(i)}
+    p1 <- pedigree[id == k$longID1[i], ]
+    p2 <- pedigree[id == k$longID2[i], ]
   
     p1.mum <- pedigree[id == p1$mumid, ]
     p1.dad <- pedigree[id == p1$dadid, ]
@@ -222,15 +224,25 @@ findkinships <- function(pedigree, sampled = NULL) {
     p2.ps <- c(p2$mumid, p2$dadid)
     p2.gs <- c(p2.mum$mumid, p2.mum$dadid, 
                p2.dad$mumid, p2.dad$dadid)
-    # Test
+    # Test - FTPs
     if (sum(p1.gs %in% p2.ps) == 2 |
         sum(p2.gs %in% p1.ps) == 2)
     {
+      print(i)
+      ks$kinship <- "FTP"
       print('Aunt/Neice relationship')
     }
+    
+    # Test - GGPs
+    if (sum(p1.gs %in% p2$id) == 1 |
+        sum(p2.gs %in% p1$id) == 1)
+    {
+      print('i')
+      ks$kinship <- "GGP"
+      print('GGP whaaat')
+    }
   }
-  
-  
+
   return(ks)
 }
 
