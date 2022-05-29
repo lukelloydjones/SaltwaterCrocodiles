@@ -2,7 +2,7 @@
 # Can we get a nice plot of the proserpine points and relationships?
 # Author: Luke Lloyd-Jones
 # Date started: 01/04/2022
-# Date updated: 01/04/2022 
+# Date updated: 20/05/2022 
 # ==============================================================================
 library(ggmap)
 library(ozmaps)
@@ -13,11 +13,14 @@ library(ggrepel)
 library(RColorBrewer)
 library(grid)
 library(maptools)
+
+source("pcrelate/rscripts/image_helper_funcs.R")
+
 # Propserpine set
 
-mta.fil.pth <- "croc_dart_round_2/meta_data_derived/croc_info_mapped_bioregion_updated_3.csv"
+mta.fil.pth <- "croc_dart_round_2/meta_data_derived/croc_info_mapped_bioregion_updated_4.csv"
 mta.dta <- read.csv(mta.fil.pth, header = T)
-rownames(mta.dta) <- paste0("IND", mta.dta$Sample_Id)
+rownames(mta.dta) <- mta.dta$Sample_Id
 
 
 table(mta.dta$Bioregion_New_Nm)
@@ -31,7 +34,10 @@ pts <- mta.dta.prsp
 # La relativi
 
 kin <- read.csv(paste0("pcrelate/results_2/kinship_stats_pcrelate_", 
-                        area, "plus_distance.csv"), header = T)
+                       "all", "plus_distance.csv"), header = T)
+kin$IDS1 <- gsub("IND", "IND_", kin$IDS1)
+kin$IDS2 <- gsub("IND", "IND_", kin$IDS2)
+
 kin$Long1 <- mta.dta[kin$IDS1, "Long"]
 kin$Lat1  <- mta.dta[kin$IDS1, "Lat"] 
 kin$Long2 <- mta.dta[kin$IDS2, "Long"]
@@ -45,6 +51,9 @@ table(kin.pros$ClstLSVMKin)
 kin.pros <- kin.pros[1:10, ]
 kin.set  <- kin.pros
 
+# Remove werid one that can't be validated
+pts <- pts[-which(pts$Long< 148.4), ]
+
 pp <- plotIndTlmtry(pts = pts, kin.set = kin.pros)
 
 png(filename = 'pcrelate/results_2/proserpine_spider.jpeg',
@@ -52,7 +61,7 @@ png(filename = 'pcrelate/results_2/proserpine_spider.jpeg',
           width =  18, 
           height = 16, 
           units = 'in', 
-         res = 300)
+          res = 300)
   print(pp)
 dev.off()
 
@@ -64,8 +73,8 @@ plotIndTlmtry <- function(pts            = NULL,
                           lgs.pth        = "pcrelate/data/",
                           cpt            = NULL,
                           ggl.scl        = 1,
-                          offsetmin      = 0.1,
-                          offsetmax      = 0.1,
+                          offsetmin      = 0.05,
+                          offsetmax      = 0.05,
                           str.end.lbl.sz = 5,
                           plt.dta.pth    = "plot_data/",
                           plt.wtr.plys   = "pcrelate/data/water_polygons_big.Rda",
@@ -232,8 +241,8 @@ plotIndTlmtry <- function(pts            = NULL,
   xdst <- box2[2] - box2[1]
   ydst <- box2[4] - box2[3]
   
-  ist.cs.xmx <- xdst * 0.12
-  ist.cs.ymx <- ydst * 0.2
+  ist.cs.xmx <- xdst * 0.25
+  ist.cs.ymx <- ydst * 0.24
   
   lg.cs.xmn <- xdst * 0.06
   lg.cs.xmx <- xdst * 0.1
@@ -243,25 +252,25 @@ plotIndTlmtry <- function(pts            = NULL,
   lg.cw.xmx <- xdst * 0.37
   lg.cw.ymx <- ydst * 0.05
   
-  scl.br.x.bf <- xdst * 0.15
+  scl.br.x.bf <- xdst * 0.2
   scl.br.y.bf <- xdst * 0.03
   
   scl.dLon <- floor(xdst * 0.08 * 11.1)  * 10
   if (scl.dLon == 0)
   {
-    scl.dLon <- 3
+    scl.dLon <- 2
   }
   scl.dLat <- floor(ydst * 0.025 * 11.1) * 10
   if (scl.dLat == 0)
   {
-    scl.dLat <- 2
+    scl.dLat <- 0.7
   }
-  scl.dLeg <- scl.dLat * 1.6
-  scl.dLgsz  <- 5
+  scl.dLeg <- scl.dLat * 1.2
+  scl.dLgsz  <- 3
   
-  scl.arwLgt <- scl.dLat * 1.9
-  scl.arwDst <- scl.dLat * 2.2
-  scl.arwNsz <- 9
+  scl.arwLgt <- scl.dLat * 1.5
+  scl.arwDst <- scl.dLat * 1.8
+  scl.arwNsz <- 4
   
   ggl.tg.sz <- 4
   
@@ -281,7 +290,7 @@ plotIndTlmtry <- function(pts            = NULL,
     scale_colour_manual(values = colrs) +
     scale_x_continuous(limits = c(box2[1], box2[2]), expand = c(0, 0)) +
     scale_y_continuous(limits = c(box2[3], box2[4]), expand = c(0, 0)) + 
-    geom_line(data = shp.all.bigs.frt, size = 1, 
+    geom_path(data = shp.all.bigs.frt, size = 1, 
               mapping = aes(x = long, y = lat, group = group), 
               colour  = brewer.pal(7, "Blues")[4]) +
     geom_segment(aes(x    = Long1, 
